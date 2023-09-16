@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
 db = SQLAlchemy()
 
+
 class Author(db.Model):
     __tablename__ = 'authors'
     # Add validations and constraints 
@@ -12,8 +13,24 @@ class Author(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
+
+    @validates("name")
+    def validate_name(self, key, name):
+        if not name:
+            raise ValueError("Author must have a name")
+        return name
+    
+    @validates("phone_number")
+    def validate_phone(self, key, phone_number):
+        if len(phone_number) != 10:
+            raise ValueError("Phone number must be 10 digits")
+        return phone_number
+
+
     def __repr__(self):
         return f'Author(id={self.id}, name={self.name})'
+
+
 
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -27,6 +44,47 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
+
+    # @validates('title')
+    # def validate_title(self, key, title):
+    #     if not title:
+    #         raise ValueError("Posts must have a title")
+    #     return title
+
+    
+    # @validates('title')
+    # def validate_title(self, key, title):
+    #     if not title and title not in ("Won't Believe", "Secret", "Top", "Guess"):
+    #         raise ValueError("Posts must have a title")
+    #     return title
+    
+    @validates('title')
+    def validate_title(self, key, title):
+        if not title or title not in ("Won't Believe", "Secret", "Top", "Guess"):
+            raise ValueError("Posts must have a title")
+        return title
+    
+    @validates('content')
+    def validate_content(self, key, content):
+        if len(content) < 250:
+            raise ValueError("Content must have 250 characters or more")
+        return content
+    
+    @validates('summary')
+    def validate_summary(self, key, summary):
+        if len(summary) >= 250:
+            raise ValueError("Summary must have max of 250 characters")
+        return summary
+    
+    @validates('category')
+    def validate_category(self, key, category):
+        # if category != 'Fiction' or 'Non-Fiction':
+        if category not in ('Fiction', 'Non-Fiction'):
+            raise ValueError("Category must be Fiction or Non-Fiction")
+        return category
+    
+
+    
 
     def __repr__(self):
         return f'Post(id={self.id}, title={self.title} content={self.content}, summary={self.summary})'
